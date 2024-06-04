@@ -39,6 +39,27 @@ async function run() {
       res.send(result);
     });
 
+app.patch('/users/:email', async (req, res) => {
+  const email = req.params.email;
+  const updatedUserData = req.body;
+
+  try {
+    const result = await LifeSyncCollection.updateOne(
+      { email: email },
+      { $set: updatedUserData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ message: 'User updated successfully' });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
     app.post('/users', async (req, res) => {
       const user = req.body;
       console.log(user);
