@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -26,44 +26,98 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // await client.connect();
-    const LifeSyncCollection = client.db('LifeSyncDB').collection('users');
+    const UsersCollection = client.db('LifeSyncDB').collection('users');
+    const DonationRequestCollection = client
+      .db('LifeSyncDB')
+      .collection('donationRequests');
 
     app.get('/users', async (req, res) => {
-      const result = await LifeSyncCollection.find().toArray();
+      const result = await UsersCollection.find().toArray();
       res.send(result);
     });
     app.get('/users/:email', async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
-      const result = await LifeSyncCollection.find(query).toArray();
+      const result = await UsersCollection.find(query).toArray();
       res.send(result);
     });
 
-app.patch('/users/:email', async (req, res) => {
-  const email = req.params.email;
-  const updatedUserData = req.body;
+    app.patch('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const updatedUserData = req.body;
 
-  try {
-    const result = await LifeSyncCollection.updateOne(
-      { email: email },
-      { $set: updatedUserData }
-    );
+      try {
+        const result = await UsersCollection.updateOne(
+          { email: email },
+          { $set: updatedUserData }
+        );
 
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({ message: 'User updated successfully' });
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+        if (result.modifiedCount === 0) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User updated successfully' });
+      } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    });
 
+    app.patch('/users/block/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await UsersCollection.updateOne(
+        { _id:new ObjectId(id) },
+        { $set: { status: 'block' } }
+      );
+      res.send(result);
+    });
+    app.patch('/users/active/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await UsersCollection.updateOne(
+        { _id:new ObjectId(id) },
+        { $set: { status: 'active' } }
+      );
+      res.send(result);
+    });
+    app.patch('/users/volunteer/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await UsersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { role: 'volunteer' } }
+      );
+      res.send(result);
+    });
+    app.patch('/users/makeAdmin/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await UsersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { role: 'admin' } }
+      );
+      res.send(result);
+    });
 
     app.post('/users', async (req, res) => {
       const user = req.body;
       console.log(user);
-      const result = await LifeSyncCollection.insertOne(user);
+      const result = await UsersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.get('/donation-requests', async (req, res) => {
+      const result = await DonationRequestCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post('/donation-requests', async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const result = await DonationRequestCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.delete('/donation-requests/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await DonationRequestCollection.deleteOne(query);
       res.send(result);
     });
 
