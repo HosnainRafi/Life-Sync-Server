@@ -27,6 +27,7 @@ async function run() {
   try {
     // await client.connect();
     const UsersCollection = client.db('LifeSyncDB').collection('users');
+    const BlogPostCollection = client.db('LifeSyncDB').collection('blogPost');
     const DonationRequestCollection = client
       .db('LifeSyncDB')
       .collection('donationRequests');
@@ -65,7 +66,7 @@ async function run() {
     app.patch('/users/block/:id', async (req, res) => {
       const id = req.params.id;
       const result = await UsersCollection.updateOne(
-        { _id:new ObjectId(id) },
+        { _id: new ObjectId(id) },
         { $set: { status: 'block' } }
       );
       res.send(result);
@@ -73,7 +74,7 @@ async function run() {
     app.patch('/users/active/:id', async (req, res) => {
       const id = req.params.id;
       const result = await UsersCollection.updateOne(
-        { _id:new ObjectId(id) },
+        { _id: new ObjectId(id) },
         { $set: { status: 'active' } }
       );
       res.send(result);
@@ -106,6 +107,12 @@ async function run() {
       const result = await DonationRequestCollection.find().toArray();
       res.send(result);
     });
+    app.get('/donation-requests/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await DonationRequestCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.post('/donation-requests', async (req, res) => {
       const user = req.body;
@@ -120,6 +127,13 @@ async function run() {
       const result = await DonationRequestCollection.deleteOne(query);
       res.send(result);
     });
+
+    //blog post route starts here
+        app.post('/blog-post', async (req, res) => {
+          const blogPost = req.body;
+          const result = await BlogPostCollection.insertOne(blogPost);
+          res.send(result);
+        });
 
     await client.db('admin').command({ ping: 1 });
     console.log(
