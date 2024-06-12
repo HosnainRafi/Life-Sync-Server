@@ -129,11 +129,18 @@ async function run() {
     });
 
     //blog post route starts here
-        app.post('/blog-post', async (req, res) => {
-          const blogPost = req.body;
-          const result = await BlogPostCollection.insertOne(blogPost);
-          res.send(result);
-        });
+    app.post('/blog-post', async (req, res) => {
+      const blogPost = req.body;
+      const result = await BlogPostCollection.insertOne(blogPost);
+      res.send(result);
+    });
+
+    app.get('/blog-post', async (req, res) => {
+      const result = await BlogPostCollection.find().toArray();
+      res.send(result);
+    });
+
+
 
     await client.db('admin').command({ ping: 1 });
     console.log(
