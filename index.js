@@ -140,7 +140,29 @@ async function run() {
       res.send(result);
     });
 
+    app.patch('/blog-post/publish/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await BlogPostCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: 'Publish' } }
+      );
+      res.send(result);
+    });
+    app.patch('/blog-post/unpublished/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await BlogPostCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: 'Draft' } }
+      );
+      res.send(result);
+    });
 
+    app.delete('/blog-post/delete/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await BlogPostCollection.deleteOne(query);
+      res.send(result);
+    });
 
     await client.db('admin').command({ ping: 1 });
     console.log(
