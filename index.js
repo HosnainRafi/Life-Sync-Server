@@ -120,6 +120,12 @@ async function run() {
       const result = await DonationRequestCollection.insertOne(user);
       res.send(result);
     });
+    app.get('/donation-requests/home/:status', async (req, res) => {
+      const value = req.params.status;
+      const query = { status: value };
+      const result = await DonationRequestCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.delete('/donation-requests/:id', async (req, res) => {
       const id = req.params.id;
