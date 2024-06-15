@@ -164,6 +164,12 @@ async function run() {
       const result = await DonationRequestCollection.deleteOne(query);
       res.send(result);
     });
+    app.get('/donation-requests/view-details/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await DonationRequestCollection.find(query).toArray();
+      res.send(result);
+    });
 
     //blog post route starts here
     app.post('/blog-post', async (req, res) => {
