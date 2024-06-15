@@ -165,6 +165,12 @@ async function run() {
       const result = await BlogPostCollection.find(query).toArray();
       res.send(result);
     });
+    app.get('/blog-post/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await BlogPostCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.patch('/blog-post/publish/:id', async (req, res) => {
       const id = req.params.id;
