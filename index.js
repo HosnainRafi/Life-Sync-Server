@@ -160,6 +160,11 @@ async function run() {
       const result = await BlogPostCollection.find().toArray();
       res.send(result);
     });
+    app.get('/blog-post/status', async (req, res) => {
+      const query = { status: 'Publish' };
+      const result = await BlogPostCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.patch('/blog-post/publish/:id', async (req, res) => {
       const id = req.params.id;
