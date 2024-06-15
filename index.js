@@ -141,6 +141,14 @@ async function run() {
       );
       res.send(result);
     });
+    app.patch('/donation-requests/done/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await DonationRequestCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: 'done' } }
+      );
+      res.send(result);
+    });
 
     app.delete('/donation-requests/:id', async (req, res) => {
       const id = req.params.id;
