@@ -157,6 +157,28 @@ async function run() {
       );
       res.send(result);
     });
+    app.patch('/donation-requests/edit/:id', async (req, res) => {
+      const id = req.params.id;
+      const user = req.body;
+      const result = await DonationRequestCollection.updateMany(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            recipientName: user.recipientName,
+            recipientDistrict: user.recipientDistrict,
+            recipientUpazila: user.recipientUpazila,
+            hospitalName: user.hospitalName,
+            address: user.address,
+            donationDate: user.donationDate,
+            donationTime: user.donationTime,
+            description: user.description,
+            status: 'pending',
+            email: user.email,
+          },
+        }
+      );
+      res.send(result);
+    });
 
     app.delete('/donation-requests/:id', async (req, res) => {
       const id = req.params.id;
