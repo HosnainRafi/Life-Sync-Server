@@ -107,12 +107,41 @@ async function run() {
       const result = await DonationRequestCollection.find().toArray();
       res.send(result);
     });
-    app.get('/donation-requests/:email', async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const result = await DonationRequestCollection.find(query).toArray();
-      res.send(result);
+    app.get('/donation-requests/donor/:email', async (req, res) => {
+      try {
+          const { email } = req.params;
+          const donationRequests = await DonationRequestCollection.find({ donorsEmail: email }).toArray();
+          res.send(donationRequests);
+      } catch (error) {
+          console.error("Error fetching donation requests:", error);
+          res.status(500).send({ message: "Internal Server Error" });
+      }
+  });
+
+  app.get('/donation-requests/:email', async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email };
+    const result = await DonationRequestCollection.find(query).toArray();
+    res.send(result);
+  });
+
+    app.get('/donors', async (req, res) => {
+      try {
+        const { bloodGroup, district, upazila } = req.query;
+        const query = {};
+    
+        if (bloodGroup) query.bloodGroup = bloodGroup;
+        if (district) query.recipientDistrict = district;
+        if (upazila) query.recipientUpazila = upazila; 
+    console.log(query);
+        const donors = await DonationRequestCollection.find(query).toArray();
+        res.json(donors);
+      } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+      }
     });
+    
+    
 
     app.post('/donation-requests', async (req, res) => {
       const user = req.body;
@@ -134,13 +163,22 @@ async function run() {
     });
 
     app.patch('/donation-requests/single-update/:id', async (req, res) => {
-      const id = req.params.id;
-      const result = await DonationRequestCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { status: 'inprogress' } }
-      );
-      res.send(result);
-    });
+      try {
+          const id = req.params.id;
+          const { donorsEmail } = req.body; // Extract donorsEmail from request body
+  
+          const result = await DonationRequestCollection.updateOne(
+              { _id: new ObjectId(id) },
+              { $set: { status: 'inprogress', donorsEmail } } // Update both status and donorsEmail
+          );
+  
+          res.send(result);
+      } catch (error) {
+          console.error("Error updating donation request:", error);
+          res.status(500).send({ message: "Internal Server Error" });
+      }
+  });
+  
     app.patch('/donation-requests/done/:id', async (req, res) => {
       const id = req.params.id;
       const result = await DonationRequestCollection.updateOne(
@@ -165,6 +203,8 @@ async function run() {
         {
           $set: {
             recipientName: user.recipientName,
+            bloodGroup: user.bloodGroup,
+            phoneNumber: user.phoneNumber,
             recipientDistrict: user.recipientDistrict,
             recipientUpazila: user.recipientUpazila,
             hospitalName: user.hospitalName,
