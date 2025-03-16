@@ -5,8 +5,18 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://life-sync-fab40.web.app', // Remove trailing slash
+  ],
+  credentials: true, // ✅ Allow cookies
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'], // ✅ Allow necessary headers
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -276,12 +286,13 @@ async function run() {
       res
         .clearCookie('token', {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-          maxAge: 0,
+          secure: true, // ✅ Required for HTTPS
+          sameSite: 'none', // ✅ Important for cross-site requests
         })
-        .send({ success: true });
+        .status(200)
+        .json({ success: true, message: 'Logged out successfully' });
     });
+    
     
 
     app.delete('/blog-post/delete/:id', async (req, res) => {
