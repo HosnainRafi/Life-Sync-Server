@@ -272,6 +272,17 @@ async function run() {
       );
       res.send(result);
     });
+    app.get('/logout', (req, res) => {
+      res
+        .clearCookie('token', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          maxAge: 0,
+        })
+        .send({ success: true });
+    });
+    
 
     app.delete('/blog-post/delete/:id', async (req, res) => {
       const id = req.params.id;
