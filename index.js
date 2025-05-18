@@ -137,14 +137,15 @@ async function run() {
 
     app.get('/donors', async (req, res) => {
       try {
-        const { bloodGroup, district, upazila } = req.query;
+        const { bloodGroup, district, upazila, role} = req.query;
         const query = {};
     
         if (bloodGroup) query.bloodGroup = bloodGroup;
-        if (district) query.recipientDistrict = district;
-        if (upazila) query.recipientUpazila = upazila; 
-    console.log(query);
-        const donors = await DonationRequestCollection.find(query).toArray();
+        if (district) query.district = district;
+        if (upazila) query.upazila = upazila; 
+        if (role) query.role = 'Donor'; 
+        console.log(query);
+        const donors = await UsersCollection.find(query).toArray();
         res.json(donors);
       } catch (error) {
         res.status(500).json({ error: 'Server error' });
