@@ -294,6 +294,30 @@ async function run() {
         .json({ success: true, message: 'Logged out successfully' });
     });
     
+
+    //donation request new
+    app.get('/donation-requests-new', async (req, res) => {
+      try {
+        const { status, bloodGroup, district, upazila } = req.query;
+    
+        const query = {};
+    
+        if (status) query.status = status;
+        if (bloodGroup) query.bloodGroup = bloodGroup;
+        if (district) query.recipientDistrict = district;
+        if (upazila) query.recipientUpazila = upazila;
+    
+        console.log("Query:", query);
+    
+        const requests = await DonationRequestCollection.find(query).toArray();
+        res.send(requests);
+      } catch (error) {
+        console.error("Error fetching donation requests:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
+    
+    
     
 
     app.delete('/blog-post/delete/:id', async (req, res) => {
