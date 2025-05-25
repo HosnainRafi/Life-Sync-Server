@@ -69,7 +69,7 @@ app.post('/send-request-email', async (req, res) => {
     console.log('Email sent:', info.response); // ✅ Add this log to verify success
     res.status(200).json({ message: 'Email sent successfully' });
   } catch (error) {
-    console.error('❌ Failed to send email:', error); // ✅ More helpful log
+    console.error(' Failed to send email:', error); // ✅ More helpful log
     res.status(500).json({ error: 'Failed to send email', details: error.toString() });
   }
 });
@@ -79,8 +79,8 @@ app.post('/send-request-email', async (req, res) => {
 
 
 
-app.post('/send-donation-confirmation', async (req, res) => {
-  const { donorName, donorEmail, donorPhone, recipientEmail, hospitalName, donationDate, donationTime } = req.body;
+app.post('/send-donation-confirmation-accept', async (req, res) => {
+  const { donorName, donorEmail, donorPhone, recipientEmail} = req.body;
 
 const mailOptions = {
   from: process.env.EMAIL_USER,
@@ -91,9 +91,7 @@ const mailOptions = {
     <p><strong>${donorName}</strong> wants to donate blood for you.</p>
     <p><strong>Email:</strong> ${donorEmail}</p>
     <p><strong>Phone:</strong> ${donorPhone}</p>
-    <p><strong>Hospital:</strong> ${hospitalName}</p>
-    <p><strong>Date:</strong> ${donationDate}</p>
-    <p><strong>Time:</strong> ${donationTime}</p>
+   
     <p>Please reach out to the donor or await further instructions.</p>
   `,
 };
@@ -238,7 +236,9 @@ const mailOptions = {
         donorEmail,
         donorPhone,
         recipientEmail,
-        
+        hospitalName,
+        donationDate,
+        donationTime
       } = req.body;
     
       const mailOptions = {
@@ -250,6 +250,9 @@ const mailOptions = {
           <p><strong>Donor Name:</strong> ${donorName}</p>
           <p><strong>Email:</strong> ${donorEmail}</p>
           <p><strong>Phone:</strong> ${donorPhone}</p>
+          <p><strong>Hospital:</strong> ${hospitalName}</p>
+          <p><strong>Date:</strong> ${donationDate}</p>
+          <p><strong>Time:</strong> ${donationTime}</p>
           <p>Please get in touch with the donor or be ready at the scheduled time.</p>
         `
       };
