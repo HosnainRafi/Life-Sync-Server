@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -34,6 +35,85 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
+//node mailer
+// ✅ Setup transporter correctly (this one works)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'rhosnain@gmail.com',
+    pass: 'snzd ceyd gjyc lxne',
+  },
+});
+
+// ✅ Email sending endpoint
+app.post('/send-request-email', async (req, res) => {
+  const { donorEmail, recipientName, recipientPhone, recipientLocation, recipientMessage } = req.body;
+
+  console.log('Incoming email request:', req.body);
+
+  const mailOptions = {
+    from: '"Life Sync" <rhosnain@gmail.com>', // You can also use process.env.EMAIL_USER
+    to: donorEmail,
+    subject: 'Blood Donation Request',
+    html: `
+      <h3>You have a new blood donation request</h3>
+      <p><strong>Recipient Name:</strong> ${recipientName}</p>
+      <p><strong>Phone:</strong> ${recipientPhone}</p>
+      <p><strong>Location:</strong> ${recipientLocation}</p>
+      <p><strong>Message:</strong> ${recipientMessage}</p>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent:', info.response); // ✅ Add this log to verify success
+    res.status(200).json({ message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('❌ Failed to send email:', error); // ✅ More helpful log
+    res.status(500).json({ error: 'Failed to send email', details: error.toString() });
+  }
+});
+
+
+
+
+
+
+app.post('/send-donation-confirmation', async (req, res) => {
+  const { donorName, donorEmail, donorPhone, recipientEmail, hospitalName, donationDate, donationTime } = req.body;
+
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: recipientEmail,
+  subject: 'A Donor Wants to Donate Blood!',
+  html: `
+    <p>Hello,</p>
+    <p><strong>${donorName}</strong> wants to donate blood for you.</p>
+    <p><strong>Email:</strong> ${donorEmail}</p>
+    <p><strong>Phone:</strong> ${donorPhone}</p>
+    <p><strong>Hospital:</strong> ${hospitalName}</p>
+    <p><strong>Date:</strong> ${donationDate}</p>
+    <p><strong>Time:</strong> ${donationTime}</p>
+    <p>Please reach out to the donor or await further instructions.</p>
+  `,
+};
+  try {
+    await transporter.sendMail(mailOptions);
+    res.send({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ success: false, message: 'Failed to send email' });
+  }
+});
+
+
+
+
+
+
+
+
+
   try {
     // await client.connect();
     const UsersCollection = client.db('LifeSyncDB').collection('users');
@@ -154,12 +234,32 @@ async function run() {
     
     
 
+    app.post('/donation-requests-donor', async (req, res) => {
+      try {
+        const request = req.body;
+    
+        if (!request.donorsEmail || !request.recipientEmail) {
+          return res.status(400).json({ error: "Missing donor or recipient email." });
+        }
+    
+        request.createdAt = new Date();
+        request.status = request.status || "pending";
+    
+        const result = await DonationRequestCollection.insertOne(request);
+        res.status(200).json({ success: true, insertedId: result.insertedId });
+      } catch (error) {
+        console.error("Failed to save donation request:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
+
     app.post('/donation-requests', async (req, res) => {
       const user = req.body;
       console.log(user);
       const result = await DonationRequestCollection.insertOne(user);
       res.send(result);
     });
+    
     app.get('/donation-requests/home/:status', async (req, res) => {
       const value = req.params.status;
       const query = { status: value };
@@ -198,6 +298,16 @@ async function run() {
       );
       res.send(result);
     });
+
+    app.patch('/donation-requests/accept/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await DonationRequestCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: 'inprogress' } }
+      );
+      res.send(result);
+    });
+
     app.patch('/donation-requests/cancel/:id', async (req, res) => {
       const id = req.params.id;
       const result = await DonationRequestCollection.updateOne(
