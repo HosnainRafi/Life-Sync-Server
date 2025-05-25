@@ -232,6 +232,37 @@ const mailOptions = {
       }
     });
     
+    app.post('/send-donation-confirmation', async (req, res) => {
+      const {
+        donorName,
+        donorEmail,
+        donorPhone,
+        recipientEmail,
+        
+      } = req.body;
+    
+      const mailOptions = {
+        from: '"Life Sync" <rhosnain@gmail.com>', // or use process.env.EMAIL_USER
+        to: recipientEmail,
+        subject: 'A Donor Wants to Donate Blood!',
+        html: `
+          <h3>Blood Donation Confirmation</h3>
+          <p><strong>Donor Name:</strong> ${donorName}</p>
+          <p><strong>Email:</strong> ${donorEmail}</p>
+          <p><strong>Phone:</strong> ${donorPhone}</p>
+          <p>Please get in touch with the donor or be ready at the scheduled time.</p>
+        `
+      };
+    
+      try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Confirmation email sent:', info.response);
+        res.status(200).json({ success: true, message: 'Confirmation email sent successfully' });
+      } catch (err) {
+        console.error(' Failed to send confirmation email:', err);
+        res.status(500).json({ success: false, message: 'Failed to send confirmation email', error: err.toString() });
+      }
+    });
     
 
     app.post('/donation-requests-donor', async (req, res) => {
