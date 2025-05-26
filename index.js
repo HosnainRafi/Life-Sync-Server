@@ -268,6 +268,52 @@ const mailOptions = {
     });
     
 
+
+    // Example using Express.js + Nodemailer
+
+app.post('/notify-donors', async (req, res) => {
+  const { donors, request } = req.body;
+
+  const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+      user: 'rhosnain@gmail.com',
+      pass: 'snzd ceyd gjyc lxne',
+    },
+  });
+
+  const emailPromises = donors.map((donor) => {
+    return transporter.sendMail({
+      from: '"Life Sync" <rhosnain@gmail.com>',
+      to: donor.email,
+      subject: 'Urgent Blood Donation Request',
+      html: `
+        <p>Dear ${donor.name},</p>
+        <p>A new blood donation request has been posted that matches your blood group (${request.bloodGroup}) and district (${request.recipientDistrict}).</p>
+        <p><strong>Patient Name:</strong> ${request.recipientName}</p>
+        <p><strong>Hospital:</strong> ${request.hospitalName}</p>
+        <p><strong>Address:</strong> ${request.address}</p>
+        <p><strong>Date:</strong> ${request.donationDate}</p>
+        <p><strong>Time:</strong> ${request.donationTime}</p>
+        <p><strong>Message:</strong> ${request.description}</p>
+        <br>
+        <p>Please login to Life Sync to accept or view more details.</p>
+      `,
+    });
+  });
+
+  try {
+    await Promise.all(emailPromises);
+    res.send({ success: true });
+  } catch (error) {
+    console.error('Error sending emails:', error);
+    res.status(500).send({ success: false, message: 'Failed to send emails' });
+  }
+});
+
+
+
+
     app.post('/donation-requests-donor', async (req, res) => {
       try {
         const request = req.body;
@@ -286,6 +332,26 @@ const mailOptions = {
         res.status(500).json({ error: "Internal server error" });
       }
     });
+
+
+app.get('/donors-email', async (req, res) => {
+  try {
+    const { bloodGroup, district, upazila, role } = req.query;
+const query = {};
+
+if (bloodGroup) query.bloodGroup = decodeURIComponent(bloodGroup.trim());
+if (district) query.district = decodeURIComponent(district.trim());
+if (upazila) query.upazila = decodeURIComponent(upazila.trim());
+if (role) query.role = decodeURIComponent(role.trim());
+
+    console.log("Donor query:", query); // Helpful debug log
+    const donors = await UsersCollection.find(query).toArray();
+    res.json(donors);
+  } catch (error) {
+    console.error('Error in /donors:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
     app.post('/donation-requests', async (req, res) => {
       const user = req.body;
